@@ -8,9 +8,18 @@ const usuariosGet = (req, res = response ) => {
     });
 }
 
-const usuariosPut = (req, res =  response) => {
+const usuariosPut = async (req, res =  response) => {
+    const { id } = req.params;
+    const {password, correo, _id, estado, google, ...resto} = req.body;
+
+    if( password ) {
+        const salt = bcryptjs.genSaltSync();
+        resto.password = bcryptjs.hashSync(password, salt) 
+    }
+
+    const usuario = await Usuario.findByIdAndUpdate(id, resto)
     res.json({
-        msg: 'get PUT'
+        usuario,
     });
 }
 
@@ -19,15 +28,6 @@ const usuariosPost =  async (req, res = response) => {
 
     const {nombre, correo, password, rol} = req.body;
     const usuario = Usuario({nombre, correo, password, rol});
-
-    //   Verificar si el correo existe
-
-    const existeEmail = await Usuario.findOne({correo});
-    if ( existeEmail ){
-        return res.status(400).json({
-            msg: 'Este correo ya está registado en la base de datos'
-        })
-    }
 
     // Encriptar el password
 
